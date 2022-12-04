@@ -10,12 +10,15 @@ fun checkOverlap(pair: Pair<IntRange, IntRange>, completely: Boolean = true): Bo
 }
 
 fun strToElfPair(strInput: String): Pair<IntRange, IntRange> {
-    val (firstElf, secondElf) = strInput.split(',')
-        .map { elf ->
-            val (start, end) = elf.split('-').map { it.toInt() }
+    return strInput
+        .split(',')
+        .map { strElf ->
+            val (start, end) = strElf.split('-').map { it.toInt() }
             start..end
         }
-    return Pair(firstElf, secondElf)
+        .chunked(2)
+        .map { Pair(it.first(), it[1]) }
+        .first()
 }
 
 fun main() {
