@@ -1,5 +1,3 @@
-import kotlin.streams.toList
-
 data class ProcedureStep(val src: Int, val dest: Int, val times: Int)
 
 fun getProcedure(strProcedure: String): List<ProcedureStep> = strProcedure
