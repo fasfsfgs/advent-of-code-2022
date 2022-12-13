@@ -1,43 +1,23 @@
 fun main() {
     fun part1(monkeys: List<Monkey>): Long {
-        return play(monkeys, 20)
+        return play(monkeys, 20) { it / 3 }
     }
 
     fun part2(monkeys: List<Monkey>): Long {
-        return play(monkeys, 10_000, calmFactor = false)
+        val cd = monkeys.map { it.test }.reduce(Long::times)
+        return play(monkeys, 10_000) { it % cd }
     }
 
     check(part1(getTestMonkeys()) == 10605L)
     println(part1(getMonkeys()))
 
-    var testMonkeys = getTestMonkeys()
-    play(testMonkeys, 1, false)
-    check(testMonkeys[0].inspectionCounter == 2L)
-    check(testMonkeys[1].inspectionCounter == 4L)
-    check(testMonkeys[2].inspectionCounter == 3L)
-    check(testMonkeys[3].inspectionCounter == 6L)
-
-    testMonkeys = getTestMonkeys()
-    play(testMonkeys, 20, false)
-    check(testMonkeys[0].inspectionCounter == 99L)
-    check(testMonkeys[1].inspectionCounter == 97L)
-    check(testMonkeys[2].inspectionCounter == 8L)
-    check(testMonkeys[3].inspectionCounter == 103L)
-
-    testMonkeys = getTestMonkeys()
-    play(testMonkeys, 1_000, false)
-    check(testMonkeys[0].inspectionCounter == 5204L)
-    check(testMonkeys[1].inspectionCounter == 4792L)
-    check(testMonkeys[2].inspectionCounter == 199L)
-    check(testMonkeys[3].inspectionCounter == 5192L)
-
     check(part2(getTestMonkeys()) == 2713310158L)
     println(part2(getMonkeys()))
 }
 
-fun play(monkeys: List<Monkey>, rounds: Int, calmFactor: Boolean = true): Long {
+fun play(monkeys: List<Monkey>, rounds: Int, worryMgmt: (Long) -> Long): Long {
     repeat(rounds) {
-        monkeys.forEach { it.turn(monkeys, calmFactor) }
+        monkeys.forEach { it.turn(monkeys, worryMgmt) }
     }
 
     val (highest, secondHighest) = monkeys
@@ -58,14 +38,14 @@ data class Monkey(
 
     var inspectionCounter = 0L
 
-    fun turn(monkeys: List<Monkey>, calmFactor: Boolean = true) {
+    fun turn(monkeys: List<Monkey>, worryMgmt: (Long) -> Long) {
         while (items.isNotEmpty()) {
             inspectionCounter++
 
             var item = items.removeFirst()
             item = operation(item)
 
-            if (calmFactor) item /= 3L
+            item = worryMgmt(item)
 
             if (item % test == 0L)
                 monkeys[trueMonkey].catch(item)
