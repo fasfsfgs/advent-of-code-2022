@@ -63,4 +63,6 @@ fun main() {
     val input = readInput("Day07")
     println(part1(input))
     println(part2(input))
+
+    // For part 2, I began reading threads in Reddit and spotted a bug while reading other people's struggles.
 }

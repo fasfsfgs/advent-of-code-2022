@@ -38,6 +38,9 @@ fun main() {
     val input = readInput("Day15")
     println(part1(input, 2_000_000))
     println(part2(input, 4_000_000))
+
+    // For part 2, I searched for help in Slack and took a possible solution reading other people's comments.
+    // I had something similar in mind, but it wouldn't get me the answer.
 }
 
 data class Position(val x: Int, val y: Int)
