@@ -18,6 +18,7 @@ fun main() {
     val input = readInput("Day12")
     println(part1(input))
     println(part2(input))
+    // For this day, I watched AoC Kotlin live to learn any algorithm for searching.
 }
 
 fun findPath(heightMap: HeightMap, destinationFn: (Pair<Int, Int>) -> Boolean): Step {
