@@ -64,7 +64,7 @@ data class Path(
     val valvesToOpen: List<Valve>,
     val timeLeft: Int,
     val cumulativePressure: Int = 0,
-    val visitedValvesWithPressure: MutableMap<Valve, Int> = mutableMapOf(steps.last() to cumulativePressure)
+    val visitedValvesWithPressure: Map<Valve, Int> = mapOf(steps.last() to cumulativePressure)
 )
 
 fun Path.nextSteps(valves: List<Valve>): List<Path> {
@@ -76,13 +76,11 @@ fun Path.nextSteps(valves: List<Valve>): List<Path> {
     val openedPath = if (valvesToOpen.contains(lastStep)) {
         val pressure = lastStep.flow * timeLeft
         val cumulativePressure = cumulativePressure + pressure
-        val openedPathVisitedValvesWithPressure = visitedValvesWithPressure.toMutableMap()
-        openedPathVisitedValvesWithPressure[lastStep] = cumulativePressure
         copy(
             valvesToOpen = valvesToOpen.minus(lastStep),
             timeLeft = timeLeft,
             cumulativePressure = cumulativePressure,
-            visitedValvesWithPressure = openedPathVisitedValvesWithPressure
+            visitedValvesWithPressure = visitedValvesWithPressure.plus(lastStep to cumulativePressure)
         )
     } else {
         null
@@ -95,9 +93,11 @@ fun Path.nextSteps(valves: List<Valve>): List<Path> {
         .map { valves.findByName(it) }
         .filter { visitedValvesWithPressure[it] != cumulativePressure }
         .map {
-            val newPathVisitedValvesWithPressure = visitedValvesWithPressure.toMutableMap()
-            newPathVisitedValvesWithPressure[it] = cumulativePressure
-            copy(steps = steps.plus(it), timeLeft = timeLeft, visitedValvesWithPressure = newPathVisitedValvesWithPressure)
+            copy(
+                steps = steps.plus(it),
+                timeLeft = timeLeft,
+                visitedValvesWithPressure = visitedValvesWithPressure.plus(it to cumulativePressure)
+            )
         }
         .sortedBy { it.valvesToOpen.contains(it.steps.last()) }
 
