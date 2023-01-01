@@ -21,12 +21,9 @@ fun main() {
 
 fun findBestPath(valves: List<Valve>): Path {
     val start = valves.find { it.name == "AA" } ?: error("start not found")
-
     val closedValves = valves.filter { it.flow > 0 }
-    val firstPath = Path(listOf(start), closedValves, 30)
-
+    val firstPath = Path(start, closedValves, 30)
     val possiblePaths = mutableListOf(firstPath)
-
     var bestPath = firstPath
 
     while (possiblePaths.isNotEmpty()) {
@@ -37,8 +34,7 @@ fun findBestPath(valves: List<Valve>): Path {
             .filter { it.cumulativePressure > bestPath.cumulativePressure }
             .maxByOrNull { it.cumulativePressure }
 
-        if (bestCompletePath != null)
-            bestPath = bestCompletePath
+        if (bestCompletePath != null) bestPath = bestCompletePath
 
         nextPossiblePaths
             .filter { isItPossibleToTopBestPath(bestPath, it) }
@@ -60,46 +56,41 @@ fun isItPossibleToTopBestPath(bestPath: Path, path: Path): Boolean {
 }
 
 data class Path(
-    val steps: List<Valve>,
+    val pos: Valve,
     val valvesToOpen: List<Valve>,
     val timeLeft: Int,
     val cumulativePressure: Int = 0,
-    val visitedValvesWithPressure: Map<Valve, Int> = mapOf(steps.last() to cumulativePressure)
+    val visitedValvesWithPressure: Map<Valve, Int> = mapOf(pos to cumulativePressure)
 )
 
 fun Path.nextSteps(valves: List<Valve>): List<Path> {
     if (valvesToOpen.isEmpty() || timeLeft == 0) return listOf()
 
     val timeLeft = timeLeft - 1
-    val lastStep = steps.last()
 
-    val openedPath = if (valvesToOpen.contains(lastStep)) {
-        val pressure = lastStep.flow * timeLeft
+    val openedPath = if (valvesToOpen.contains(pos)) {
+        val pressure = pos.flow * timeLeft
         val cumulativePressure = cumulativePressure + pressure
         copy(
-            valvesToOpen = valvesToOpen.minus(lastStep),
+            valvesToOpen = valvesToOpen - pos,
             timeLeft = timeLeft,
             cumulativePressure = cumulativePressure,
-            visitedValvesWithPressure = visitedValvesWithPressure.plus(lastStep to cumulativePressure)
+            visitedValvesWithPressure = visitedValvesWithPressure + (pos to cumulativePressure)
         )
     } else {
         null
     }
 
-    val bestValveToOpen = valvesToOpen.maxBy { it.flow }
-    if (openedPath?.steps?.last() == bestValveToOpen) return listOf(openedPath)
-
-    val nextPaths = lastStep.destinationIds
+    val nextPaths = pos.destinationIds
         .map { valves.findByName(it) }
         .filter { visitedValvesWithPressure[it] != cumulativePressure }
         .map {
             copy(
-                steps = steps.plus(it),
+                pos = it,
                 timeLeft = timeLeft,
-                visitedValvesWithPressure = visitedValvesWithPressure.plus(it to cumulativePressure)
+                visitedValvesWithPressure = visitedValvesWithPressure + (it to cumulativePressure)
             )
         }
-        .sortedBy { it.valvesToOpen.contains(it.steps.last()) }
 
     return if (openedPath != null) {
         nextPaths + openedPath
@@ -117,5 +108,4 @@ fun List<String>.parseReport(): List<Valve> = map {
 
 data class Valve(val name: String, val flow: Int, val destinationIds: List<String>)
 
-fun List<Valve>.findByName(name: String): Valve =
-    find { it.name == name } ?: error("Valve of name $name not found.")
+fun List<Valve>.findByName(name: String): Valve = find { it.name == name } ?: error("Valve of name $name not found.")
