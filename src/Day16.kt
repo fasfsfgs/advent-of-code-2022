@@ -15,7 +15,7 @@ fun main() {
 
     val input = readInput("Day16")
     println(part1(input))
-//    println(part2(input))
+    println(part2(input))
 }
 
 fun findBestPathInPair(valves: List<Valve>): PathInPair {
@@ -28,16 +28,15 @@ fun findBestPathInPair(valves: List<Valve>): PathInPair {
     while (possiblePaths.isNotEmpty()) {
         val pathToWorkOn = possiblePaths.removeLast()
 
-        if (!isItPossibleToTopBestPathInPair(bestPath, pathToWorkOn)) continue
+        if (pathToWorkOn.cumulativePressure > bestPath.cumulativePressure) {
+            bestPath = pathToWorkOn
+            println(bestPath.cumulativePressure)
+        }
+
+        if (!isItPossibleToTopBestPathInPair(bestPath, pathToWorkOn))
+            continue
 
         val nextPossiblePaths = pathToWorkOn.nextSteps(valves)
-
-        val bestCompletePath = nextPossiblePaths
-            .filter { it.cumulativePressure > bestPath.cumulativePressure }
-            .maxByOrNull { it.cumulativePressure }
-
-        if (bestCompletePath != null) bestPath = bestCompletePath
-
         possiblePaths.addAll(nextPossiblePaths)
     }
 
@@ -50,9 +49,9 @@ fun isItPossibleToTopBestPathInPair(bestPath: PathInPair, path: PathInPair): Boo
         .chunked(2)
         .mapIndexed { index, valves ->
             if (valves.size == 1)
-                (path.timeLeft - (index + 1)) * valves[0].flow
+                (path.timeLeft - ((index * 2) + 1)) * valves[0].flow
             else
-                (path.timeLeft - (index + 1)) * valves[0].flow + (path.timeLeft - (index + 1)) * valves[1].flow
+                (path.timeLeft - ((index * 2) + 1)) * valves[0].flow + (path.timeLeft - ((index * 2) + 1)) * valves[1].flow
         }
         .filter { it > 0 }
         .sum()
@@ -152,16 +151,14 @@ fun findBestPath(valves: List<Valve>): Path {
 
     while (possiblePaths.isNotEmpty()) {
         val pathToWorkOn = possiblePaths.removeLast()
-        val nextPossiblePaths = pathToWorkOn.nextSteps(valves)
 
-        val bestCompletePath = nextPossiblePaths
-            .filter { it.cumulativePressure > bestPath.cumulativePressure }
-            .maxByOrNull { it.cumulativePressure }
+        if (pathToWorkOn.cumulativePressure > bestPath.cumulativePressure)
+            bestPath = pathToWorkOn
 
-        if (bestCompletePath != null) bestPath = bestCompletePath
+        if (!isItPossibleToTopBestPath(bestPath, pathToWorkOn))
+            continue
 
-        nextPossiblePaths
-            .filter { isItPossibleToTopBestPath(bestPath, it) }
+        pathToWorkOn.nextSteps(valves)
             .forEach { possiblePaths.add(it) }
     }
 
@@ -172,7 +169,7 @@ fun isItPossibleToTopBestPath(bestPath: Path, path: Path): Boolean {
     val theoreticalCumulativePressureOfClosedValves = path
         .valvesToOpen
         .sortedByDescending { it.flow }
-        .mapIndexed { index, valve -> (path.timeLeft - (index + 1)) * valve.flow }
+        .mapIndexed { index, valve -> (path.timeLeft - ((index * 2) + 1)) * valve.flow }
         .filter { it > 0 }
         .sum()
 
